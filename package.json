@@ -1,0 +1,27 @@
+{
+  "name": "phonebook_backend_fullstack_open",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MacielDouglas/Phonebook_BackEnd_FullStack_Open.git"
+  },
+  "author": "Douglas Maciel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MacielDouglas/Phonebook_BackEnd_FullStack_Open/issues"
+  },
+  "homepage": "https://github.com/MacielDouglas/Phonebook_BackEnd_FullStack_Open#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
