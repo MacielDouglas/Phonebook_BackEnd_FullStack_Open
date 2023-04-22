@@ -4,7 +4,11 @@ const morgan = require('morgan');
 
 // middleware
 // app.use(morgan('tiny'));
-morgan.token('body', (req, res) => JSON.stringify(req.body));
+morgan.token('body', (request) =>
+  request.method === 'POST' && request.body.name
+    ? JSON.stringify(request.body)
+    : null
+);
 
 app.use(
   morgan(
