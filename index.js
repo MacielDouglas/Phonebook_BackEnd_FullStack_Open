@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const morgan = require('morgan');
 
 // middleware
@@ -32,6 +33,7 @@ morgan.token('body', (request) =>
     : null
 );
 
+app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 app.use(express.static('build'));
