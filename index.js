@@ -1,5 +1,21 @@
 const express = require('express');
 const app = express();
+const morgan = require('morgan');
+
+// middleware
+// app.use(morgan('tiny'));
+morgan.token('body', (request) =>
+  request.method === 'POST' && request.body.name
+    ? JSON.stringify(request.body)
+    : null
+);
+
+app.use(
+  morgan(
+    ':method :url :status :response-time ms - :body'
+    // ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'
+  )
+);
 
 app.use(express.json());
 
