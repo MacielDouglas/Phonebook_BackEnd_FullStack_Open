@@ -3,6 +3,28 @@ const app = express();
 const morgan = require('morgan');
 
 // middleware
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method);
+  console.log('Path:  ', request.path);
+  console.log('Body:  ', request.body);
+  console.log('---');
+  next();
+};
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+};
+
 // app.use(morgan('tiny'));
 morgan.token('body', (request) =>
   request.method === 'POST' && request.body.name
@@ -10,14 +32,16 @@ morgan.token('body', (request) =>
     : null
 );
 
+app.use(express.json());
+app.use(requestLogger);
+app.use(express.static('build'));
+
 app.use(
   morgan(
     ':method :url :status :response-time ms - :body'
     // ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'
   )
 );
-
-app.use(express.json());
 
 let persons = [
   {
@@ -111,6 +135,12 @@ app.post('/api/persons', (request, response) => {
 
   response.json(person);
 });
+
+// gerenciador de requisições com um endpoint desconhecido
+app.use(unknownEndpoint);
+
+// gerenciador de requisições com um resultado para erros
+app.use(errorHandler);
 
 const PORT = 3001;
 app.listen(PORT, () => {
