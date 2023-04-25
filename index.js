@@ -2,29 +2,9 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
+require('dotenv').config();
 
-// middleware
-const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method);
-  console.log('Path:  ', request.path);
-  console.log('Body:  ', request.body);
-  console.log('---');
-  next();
-};
-
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message);
-
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' });
-  }
-
-  next(error);
-};
-
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' });
-};
+const Person = require('./models/person');
 
 // app.use(morgan('tiny'));
 morgan.token('body', (request) =>
@@ -35,7 +15,6 @@ morgan.token('body', (request) =>
 
 app.use(cors());
 app.use(express.json());
-app.use(requestLogger);
 app.use(express.static('build'));
 
 app.use(
@@ -73,7 +52,7 @@ app.get('/', (request, response) => {
   response.send('<h1>Hello World</h1>');
 });
 app.get('/info', (request, response) => {
-  const entries = persons.length;
+  const entries = Person.length - 1;
   const date = new Date();
 
   response.send(
@@ -82,26 +61,30 @@ app.get('/info', (request, response) => {
 });
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  Person.find({}).then((peaples) => {
+    response.json(peaples);
+  });
 });
 
 // Esse app ira gerenciar todas as requisições HTTP GET com parametro id
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-
-  response.status(204).end();
+  Person.findByIdAndRemove(request.params.id)
+    .then((result) => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 const generateId = () => {
@@ -127,24 +110,54 @@ app.post('/api/persons', (request, response) => {
 
   // if (body.name === )
 
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+    // id: generateId(),
+  });
+
+  // persons = persons.concat(person);
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
+});
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body;
+
   const person = {
     name: body.name,
     number: body.number,
-    id: generateId(),
   };
 
-  persons = persons.concat(person);
-
-  response.json(person);
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then((updatePerson) => {
+      response.json(updatePerson);
+    })
+    .catch((error) => next(error));
 });
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+};
 
 // gerenciador de requisições com um endpoint desconhecido
 app.use(unknownEndpoint);
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+
 // gerenciador de requisições com um resultado para erros
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
