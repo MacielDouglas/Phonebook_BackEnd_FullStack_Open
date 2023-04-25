@@ -5,9 +5,13 @@ if (process.argv.length < 3) {
   process.exit(1);
 }
 
-const password = process.argv[2];
+const arguments = process.argv;
 
-const url = '';
+const password = arguments[2];
+const name = arguments[3];
+const number = arguments[4];
+
+const url = ``;
 
 mongoose.set('strictQuery', false);
 mongoose.connect(url);
@@ -19,19 +23,20 @@ const personSchema = new mongoose.Schema({
 
 const Person = mongoose.model('Person', personSchema);
 
-const person = new Person({
-  name: 'Juracy da Cunha',
-  number: '99999-9998',
-});
-
-// person.save().then((result) => {
-//   console.log('person added!');
-//   mongoose.connection.close();
-// });
-
-Person.find({}).then((result) => {
-  result.forEach((person) => {
-    console.log(person);
+if (arguments.length === 3) {
+  // console.log({ Person });
+  Person.find({}).then((result) => {
+    result.map((peaple) => console.log(peaple.name, peaple.number));
+    mongoose.connection.close();
   });
-  mongoose.connection.close();
-});
+} else {
+  const person = new Person({
+    name: name,
+    number: number,
+  });
+
+  person.save().then((result) => {
+    console.log(`added ${name}, number ${number} to phonebook`);
+    mongoose.connection.close();
+  });
+}
